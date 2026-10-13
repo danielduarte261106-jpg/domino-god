@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/DominoPiece.gd" id="1"]
+
+[node name="FruitTile" type="Button"]
+custom_minimum_size = Vector2(152, 76)
+layout_mode = 2
+script = ExtResource("1")
