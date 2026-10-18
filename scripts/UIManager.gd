@@ -971,8 +971,10 @@ func play_celebration(screen_position: Vector2 = Vector2.ZERO) -> void:
 
 func transition_environment(env: String) -> void:
 	var is_board := (env == "board")
-	var bg_color := Color("#1E1E1E") if is_board else Color("#25352A")
-	var accent_color := Color("#61f2d0") if is_board else Color("#e2694a")
+	# Modo oscuro: negro-azul profundo con neón cian
+	# Modo tropical: verde selva oscuro con neón verde eléctrico
+	var bg_color   := Color("#0D0D1A") if is_board else Color("#0A2A14")
+	var accent_color := Color("#00f5ff") if is_board else Color("#39ff7a")
 
 	var bg: ColorRect = _root.get_node_or_null("../../BackgroundLayer/BackgroundRect")
 	if bg == null and get_parent() != null:
