@@ -175,7 +175,7 @@ func _end_drag(screen_position: Vector2, is_touch: bool) -> void:
 func _draw() -> void:
 	var first_color := FRUIT_COLORS[clampi(first_fruit, 0, FRUIT_COLORS.size() - 1)]
 	var second_color := FRUIT_COLORS[clampi(second_fruit, 0, FRUIT_COLORS.size() - 1)]
-	draw_rect(Rect2(Vector2(2, 4), size), Color(0, 0, 0, 0.25), true, 8.0)
+	draw_rect(Rect2(Vector2(2, 4), size), Color(0, 0, 0, 0.25), true)
 
 	if is_vertical:
 		var middle := size.y * 0.5

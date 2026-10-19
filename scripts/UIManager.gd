@@ -102,10 +102,10 @@ func _build_theme() -> void:
 	_theme.set_stylebox("pressed", "Button", btn_pressed)
 	_theme.set_stylebox("focus", "Button", btn_hover)
 	_theme.set_color("font_color", "Button", Color("#ffffff"))
-	_theme.set_font_size("font_size", "Button", 20)
+	_theme.set_font_size("font_size", "Button", 22)
 
 	_theme.set_color("font_color", "Label", Color("#f1f5f9"))
-	_theme.set_font_size("font_size", "Label", 17)
+	_theme.set_font_size("font_size", "Label", 18)
 
 
 func _build_interface() -> void:
@@ -144,9 +144,9 @@ func _build_top_hud() -> void:
 	_lives_label = Label.new()
 	_lives_label.text = "♥♥♥"
 	_lives_label.position = Vector2(24, 0)
-	_lives_label.size = Vector2(160, 44)
+	_lives_label.size = Vector2(180, 44)
 	_lives_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_lives_label.add_theme_font_size_override("font_size", 26)
+	_lives_label.add_theme_font_size_override("font_size", 30)
 	_lives_label.add_theme_color_override("font_color", COLOR_HEART)
 	_lives_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
 	_lives_label.add_theme_constant_override("shadow_offset_x", 2)
@@ -159,11 +159,11 @@ func _build_top_hud() -> void:
 	_turn_info_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	_turn_info_label.anchor_left = 0.5
 	_turn_info_label.anchor_right = 0.5
-	_turn_info_label.offset_left = -150
-	_turn_info_label.offset_right = 150
+	_turn_info_label.offset_left = -200
+	_turn_info_label.offset_right = 200
 	_turn_info_label.offset_top = 4
 	_turn_info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_turn_info_label.add_theme_font_size_override("font_size", 16)
+	_turn_info_label.add_theme_font_size_override("font_size", 19)
 	_turn_info_label.add_theme_color_override("font_color", Color(0.8, 0.85, 0.9))
 	_hud_bar.add_child(_turn_info_label)
 
@@ -189,33 +189,33 @@ func _build_top_hud() -> void:
 # 2. FLOATING AVATARS (Estilo Dominó - Juego de Tablero)
 # -------------------------------------------------------------------------
 func _build_floating_avatars() -> void:
-	# Top Avatar (J3 / CPU en 1v1)
+	# Top Avatar (J3 / CPU en 1v1): centrado exacto en pantalla 720px (360 - 50 = 310)
 	_avatar_nodes["top"] = _create_avatar_view(
-		Vector2(360, 110),
+		Vector2(310, 105),
 		"CPU",
 		"🤖",
 		true
 	)
 
-	# Left Avatar (J2 en 2v2)
+	# Left Avatar (J2 en 2v2): margen izquierdo seguro
 	_avatar_nodes["left"] = _create_avatar_view(
-		Vector2(64, 540),
+		Vector2(20, 520),
 		"J2",
 		"👤",
 		false
 	)
 
-	# Right Avatar (J4 en 2v2)
+	# Right Avatar (J4 en 2v2): simétrico al izquierdo (720 - 100 - 20 = 600)
 	_avatar_nodes["right"] = _create_avatar_view(
-		Vector2(656, 540),
+		Vector2(600, 520),
 		"J4",
 		"👤",
 		false
 	)
 
-	# Bottom Avatar (Jugador Principal - Tú)
+	# Bottom Avatar (Jugador Principal - Tú): esquina inferior izquierda, arriba de la mano
 	_avatar_nodes["bottom"] = _create_avatar_view(
-		Vector2(110, 1020),
+		Vector2(24, 980),
 		"Tú",
 		"👑",
 		true
@@ -255,17 +255,17 @@ func _create_avatar_view(pos: Vector2, default_name: String, icon_emoji: String,
 	icon_lbl.size = circle.size
 	icon_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	icon_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	icon_lbl.add_theme_font_size_override("font_size", 22)
+	icon_lbl.add_theme_font_size_override("font_size", 24)
 	circle.add_child(icon_lbl)
 
 	# Badge de conteo de fichas restantes
 	var tiles_badge := Label.new()
 	tiles_badge.text = "7"
-	tiles_badge.size = Vector2(26, 20)
-	tiles_badge.position = Vector2(54, 34)
+	tiles_badge.size = Vector2(28, 22)
+	tiles_badge.position = Vector2(52, 32)
 	tiles_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	tiles_badge.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	tiles_badge.add_theme_font_size_override("font_size", 12)
+	tiles_badge.add_theme_font_size_override("font_size", 13)
 	var badge_style := StyleBoxFlat.new()
 	badge_style.bg_color = Color(0.2, 0.25, 0.35)
 	badge_style.set_corner_radius_all(8)
@@ -283,15 +283,15 @@ func _create_avatar_view(pos: Vector2, default_name: String, icon_emoji: String,
 	var name_lbl := Label.new()
 	name_lbl.text = default_name
 	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_lbl.add_theme_font_size_override("font_size", 13)
-	name_lbl.add_theme_color_override("font_color", Color(0.85, 0.88, 0.95))
+	name_lbl.add_theme_font_size_override("font_size", 14)
+	name_lbl.add_theme_color_override("font_color", Color(0.88, 0.92, 0.98))
 	info_box.add_child(name_lbl)
 	container.set_meta("name_lbl", name_lbl)
 
 	var score_lbl := Label.new()
 	score_lbl.text = "0 pts"
 	score_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	score_lbl.add_theme_font_size_override("font_size", 12)
+	score_lbl.add_theme_font_size_override("font_size", 14)
 	score_lbl.add_theme_color_override("font_color", COLOR_ACCENT)
 	info_box.add_child(score_lbl)
 	container.set_meta("score_lbl", score_lbl)
@@ -311,16 +311,17 @@ func _build_floating_hand() -> void:
 	_ends_label.anchor_right = 0.5
 	_ends_label.anchor_top = 1.0
 	_ends_label.anchor_bottom = 1.0
-	_ends_label.offset_left = -180
-	_ends_label.offset_right = 180
-	_ends_label.offset_top = -215
-	_ends_label.offset_bottom = -190
+	# Estrecho para no solapar con avatar izquierdo (X:110-210): empieza desde X:220
+	_ends_label.offset_left = -140
+	_ends_label.offset_right = 140
+	_ends_label.offset_top = -230
+	_ends_label.offset_bottom = -200
 	_ends_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_ends_label.add_theme_font_size_override("font_size", 14)
-	_ends_label.add_theme_color_override("font_color", Color(0.65, 0.72, 0.82))
+	_ends_label.add_theme_font_size_override("font_size", 17)
+	_ends_label.add_theme_color_override("font_color", Color(0.7, 0.78, 0.9))
 	_root.add_child(_ends_label)
 
-	# Contenedor de fichas de la mano: HBoxContainer centrado, sin ScrollContainer
+	# Contenedor de fichas de la mano
 	_hand_row = HBoxContainer.new()
 	_hand_row.name = "HandRow"
 	_hand_row.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
@@ -330,8 +331,9 @@ func _build_floating_hand() -> void:
 	_hand_row.anchor_bottom = 1.0
 	_hand_row.offset_left = -345
 	_hand_row.offset_right = 345
+	# Empujado abajo para dejar espacio al ends_label (gap mínimo de 12px)
 	_hand_row.offset_top = -185
-	_hand_row.offset_bottom = -15
+	_hand_row.offset_bottom = -12
 	_hand_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	_hand_row.add_theme_constant_override("separation", 6)
 	_hand_row.mouse_filter = Control.MOUSE_FILTER_PASS
@@ -342,41 +344,43 @@ func _build_floating_hand() -> void:
 # 4. DISCRETE ACTION BUTTONS (Robar / Pasar flotantes sutiles)
 # -------------------------------------------------------------------------
 func _build_discrete_action_buttons() -> void:
-	# Botón Robar Ficha: píldora ergonómica flotante encima de la mano
+	# Botón Robar Ficha: zona superior de acción (sobre el área de bloqueo)
 	_draw_btn = Button.new()
 	_draw_btn.text = "🀄 Robar del Pozo"
-	_draw_btn.custom_minimum_size = Vector2(0, 56)
+	_draw_btn.custom_minimum_size = Vector2(0, 60)
 	_draw_btn.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 	_draw_btn.anchor_left = 0.5
 	_draw_btn.anchor_right = 0.5
 	_draw_btn.anchor_top = 1.0
 	_draw_btn.anchor_bottom = 1.0
-	_draw_btn.offset_left = -110
-	_draw_btn.offset_right = 110
-	_draw_btn.offset_top = -296
-	_draw_btn.offset_bottom = -240
-	_draw_btn.pivot_offset = Vector2(110, 28)
-	_draw_btn.add_theme_font_size_override("font_size", 20)
+	# Zona de acción: Y 900–965 (encima del botón Ayuda a Y:985–1050)
+	_draw_btn.offset_left = -130
+	_draw_btn.offset_right = 130
+	_draw_btn.offset_top = -380
+	_draw_btn.offset_bottom = -320
+	_draw_btn.pivot_offset = Vector2(130, 30)
+	_draw_btn.add_theme_font_size_override("font_size", 22)
 	_draw_btn.pressed.connect(func(): draw_requested.emit())
 	_setup_button_bounce(_draw_btn)
 	_draw_btn.visible = false
 	_root.add_child(_draw_btn)
 
-	# Botón Pasar Turno: píldora ergonómica flotante
+	# Botón Pasar Turno: misma zona que Robar (son mutuamente exclusivos)
 	_pass_btn = Button.new()
 	_pass_btn.text = "↷ Pasar Turno"
-	_pass_btn.custom_minimum_size = Vector2(0, 56)
+	_pass_btn.custom_minimum_size = Vector2(0, 60)
 	_pass_btn.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 	_pass_btn.anchor_left = 0.5
 	_pass_btn.anchor_right = 0.5
 	_pass_btn.anchor_top = 1.0
 	_pass_btn.anchor_bottom = 1.0
-	_pass_btn.offset_left = -110
-	_pass_btn.offset_right = 110
-	_pass_btn.offset_top = -296
-	_pass_btn.offset_bottom = -240
-	_pass_btn.pivot_offset = Vector2(110, 28)
-	_pass_btn.add_theme_font_size_override("font_size", 20)
+	# Misma zona que Robar (nunca se muestran simultáneamente)
+	_pass_btn.offset_left = -130
+	_pass_btn.offset_right = 130
+	_pass_btn.offset_top = -380
+	_pass_btn.offset_bottom = -320
+	_pass_btn.pivot_offset = Vector2(130, 30)
+	_pass_btn.add_theme_font_size_override("font_size", 22)
 	_pass_btn.pressed.connect(func(): pass_requested.emit())
 	_setup_button_bounce(_pass_btn)
 	_pass_btn.visible = false
@@ -389,17 +393,17 @@ func _build_discrete_action_buttons() -> void:
 func _build_help_button() -> void:
 	_help_btn = Button.new()
 	_help_btn.text = "🛟 Ayuda"
-	_help_btn.custom_minimum_size = Vector2(0, 56)
+	_help_btn.custom_minimum_size = Vector2(0, 60)
 	_help_btn.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
 	_help_btn.anchor_left = 1.0
 	_help_btn.anchor_right = 1.0
 	_help_btn.anchor_top = 1.0
 	_help_btn.anchor_bottom = 1.0
-	_help_btn.offset_left = -150
-	_help_btn.offset_right = -16
-	_help_btn.offset_top = -242
-	_help_btn.offset_bottom = -186
-	_help_btn.pivot_offset = Vector2(67, 28)
+	_help_btn.offset_left = -160
+	_help_btn.offset_right = -12
+	_help_btn.offset_top = -252
+	_help_btn.offset_bottom = -192
+	_help_btn.pivot_offset = Vector2(74, 30)
 
 	var help_style := StyleBoxFlat.new()
 	help_style.bg_color = Color(0.22, 0.18, 0.12, 0.9)
@@ -410,7 +414,7 @@ func _build_help_button() -> void:
 	help_style.shadow_size = 8
 	_help_btn.add_theme_stylebox_override("normal", help_style)
 	_help_btn.add_theme_color_override("font_color", COLOR_ACCENT)
-	_help_btn.add_theme_font_size_override("font_size", 20)
+	_help_btn.add_theme_font_size_override("font_size", 22)
 
 	_help_btn.pressed.connect(func(): help_requested.emit())
 	_setup_button_bounce(_help_btn)
@@ -470,8 +474,9 @@ func _build_side_choice_bar() -> void:
 	_side_choice_bar.anchor_bottom = 1.0
 	_side_choice_bar.offset_left = -200
 	_side_choice_bar.offset_right = 200
-	_side_choice_bar.offset_top = -306
-	_side_choice_bar.offset_bottom = -242
+	# Zona superior: sobre los botones Robar/Pasar (Y:900-965), a Y:830-900
+	_side_choice_bar.offset_top = -450
+	_side_choice_bar.offset_bottom = -385
 	_side_choice_bar.pivot_offset = Vector2(200, 32)
 	_side_choice_bar.visible = false
 	_root.add_child(_side_choice_bar)
@@ -538,16 +543,18 @@ func _build_floating_toast() -> void:
 	_toast_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	_toast_label.anchor_left = 0.5
 	_toast_label.anchor_right = 0.5
-	_toast_label.offset_left = -220
-	_toast_label.offset_right = 220
-	_toast_label.offset_top = 180
-	_toast_label.offset_bottom = 220
+	_toast_label.offset_left = -260
+	_toast_label.offset_right = 260
+	# Desplazado abajo del avatar superior (cuyo texto llega a Y~202)
+	# para evitar solapamiento: empieza en Y:215
+	_toast_label.offset_top = 215
+	_toast_label.offset_bottom = 290
 	_toast_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_toast_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_toast_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_toast_label.add_theme_font_size_override("font_size", 16)
-	_toast_label.add_theme_color_override("font_color", Color(0.95, 0.95, 0.95))
-	_toast_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
+	_toast_label.add_theme_font_size_override("font_size", 18)
+	_toast_label.add_theme_color_override("font_color", Color(0.96, 0.96, 0.96))
+	_toast_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.95))
 	_toast_label.add_theme_constant_override("shadow_offset_x", 2)
 	_toast_label.add_theme_constant_override("shadow_offset_y", 2)
 	_toast_label.modulate.a = 0.0
@@ -561,8 +568,8 @@ func set_status(message: String) -> void:
 		_toast_tween.kill()
 	_toast_tween = create_tween()
 	_toast_tween.tween_property(_toast_label, "modulate:a", 1.0, 0.15)
-	_toast_tween.tween_interval(2.2)
-	_toast_tween.tween_property(_toast_label, "modulate:a", 0.0, 0.4)
+	_toast_tween.tween_interval(3.0)
+	_toast_tween.tween_property(_toast_label, "modulate:a", 0.0, 0.5)
 
 
 # -------------------------------------------------------------------------
@@ -759,16 +766,16 @@ func _build_effects() -> void:
 	_formula_label = Label.new()
 	_formula_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_formula_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_formula_label.add_theme_font_size_override("font_size", 32)
+	_formula_label.add_theme_font_size_override("font_size", 36)
 	_formula_label.add_theme_color_override("font_color", COLOR_ACCENT)
 	_formula_label.add_theme_color_override("font_shadow_color", Color("#000000"))
 	_formula_label.add_theme_constant_override("shadow_offset_x", 3)
 	_formula_label.add_theme_constant_override("shadow_offset_y", 3)
 	_formula_label.set_anchors_preset(Control.PRESET_CENTER)
-	_formula_label.anchor_left = 0.1
-	_formula_label.anchor_right = 0.9
-	_formula_label.anchor_top = 0.38
-	_formula_label.anchor_bottom = 0.48
+	_formula_label.anchor_left = 0.08
+	_formula_label.anchor_right = 0.92
+	_formula_label.anchor_top = 0.36
+	_formula_label.anchor_bottom = 0.50
 	_formula_label.modulate.a = 0.0
 	_formula_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_root.add_child(_formula_label)
@@ -827,7 +834,7 @@ func update_hud(
 	if lives <= 0:
 		_lives_label.text = "SIN VIDAS"
 
-	_turn_info_label.text = "%s" % mode_name
+	_turn_info_label.text = "%s  ·  Meta: %d pts" % [mode_name, GameEconomy.target_score]
 
 	# Configurar visibilidad y datos de Avatares según el modo
 	var is_2v2 := mode_name == "2 vs 2 Local"

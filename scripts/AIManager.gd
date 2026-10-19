@@ -18,16 +18,19 @@ static func choose_best_move(
 		var second: int = int(tile["b"])
 		var score := _tile_score(tile, fruit_points)
 		if board_is_empty:
-			legal_moves.append(_make_move(tile, "right", first, second, false, score))
+			# Primera ficha: se coloca en el lado izquierdo por convención
+			legal_moves.append(_make_move(tile, "left", first, second, false, score))
 			continue
+		# Lado izquierdo: la fruta que toca el tablero es la que coincide con left_end
 		if first == left_end:
 			legal_moves.append(_make_move(tile, "left", first, second, false, score))
 		elif second == left_end:
 			legal_moves.append(_make_move(tile, "left", second, first, false, score))
+		# Lado derecho: la fruta que toca el tablero es la que coincide con right_end
 		if first == right_end:
-			legal_moves.append(_make_move(tile, "right", second, first, false, score))
-		elif second == right_end:
 			legal_moves.append(_make_move(tile, "right", first, second, false, score))
+		elif second == right_end:
+			legal_moves.append(_make_move(tile, "right", second, first, false, score))
 
 	if not legal_moves.is_empty():
 		legal_moves.sort_custom(_sort_by_score)

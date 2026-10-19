@@ -47,9 +47,9 @@ func show_question(question: Dictionary) -> void:
 	for choice in question.get("choices", []):
 		var button := Button.new()
 		button.text = str(choice)
-		button.custom_minimum_size = Vector2(0, 56)
+		button.custom_minimum_size = Vector2(0, 60)
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		button.add_theme_font_size_override("font_size", 18)
+		button.add_theme_font_size_override("font_size", 20)
 		button.pressed.connect(func(): _submit(str(choice), false, button))
 		_choices_box.add_child(button)
 	visible = true
@@ -74,23 +74,23 @@ func _build_interface() -> void:
 	add_child(center)
 
 	_card = PanelContainer.new()
-	_card.custom_minimum_size = Vector2(560, 0)
+	_card.custom_minimum_size = Vector2(580, 0)
 	center.add_child(_card)
 
 	var layout := VBoxContainer.new()
-	layout.add_theme_constant_override("separation", 16)
+	layout.add_theme_constant_override("separation", 18)
 	_card.add_child(layout)
 
 	var heading := Label.new()
 	heading.text = "Trivia CombiFrutas"
 	heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	heading.add_theme_font_size_override("font_size", 30)
+	heading.add_theme_font_size_override("font_size", 34)
 	layout.add_child(heading)
 
 	_question_label = Label.new()
 	_question_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_question_label.custom_minimum_size = Vector2(500, 90)
-	_question_label.add_theme_font_size_override("font_size", 21)
+	_question_label.custom_minimum_size = Vector2(520, 90)
+	_question_label.add_theme_font_size_override("font_size", 22)
 	layout.add_child(_question_label)
 
 	_timer_bar = ProgressBar.new()
@@ -121,11 +121,15 @@ func _submit(choice: String, timed_out: bool = false, pressed_button: Button = n
 	var correct := TriviaManager.resolve_answer(_question, choice)
 	var expected_answer: String = str(_question.get("answer", "")).strip_edges().to_lower()
 
-	# Colorear la opción correcta en verde (#2ecc71) y el botón presionado en rojo (#e74c3c) si falló
+	# Deshabilitar botones para evitar clics múltiples
 	for child in _choices_box.get_children():
 		if child is Button:
 			child.disabled = true
-			if child.text.strip_edges().to_lower() == expected_answer:
+
+	if correct:
+		# Opción correcta seleccionada: marcar en verde directamente
+		for child in _choices_box.get_children():
+			if child is Button and child.text.strip_edges().to_lower() == expected_answer:
 				var green_style := StyleBoxFlat.new()
 				green_style.bg_color = Color("#2ecc71")
 				green_style.set_corner_radius_all(14)
@@ -133,29 +137,42 @@ func _submit(choice: String, timed_out: bool = false, pressed_button: Button = n
 				child.add_theme_stylebox_override("disabled", green_style)
 				child.add_theme_color_override("font_color", Color.WHITE)
 				child.add_theme_color_override("font_disabled_color", Color.WHITE)
-			elif (child == pressed_button or (pressed_button == null and child.text == choice)) and not correct:
-				var red_style := StyleBoxFlat.new()
-				red_style.bg_color = Color("#e74c3c")
-				red_style.set_corner_radius_all(14)
-				child.add_theme_stylebox_override("normal", red_style)
-				child.add_theme_stylebox_override("disabled", red_style)
-				child.add_theme_color_override("font_color", Color.WHITE)
-				child.add_theme_color_override("font_disabled_color", Color.WHITE)
-
-	# Label temporal que indica el resultado
-	if correct:
 		_feedback_label.text = "¡Correcto!"
 		_feedback_label.add_theme_color_override("font_color", Color("#2ecc71"))
 		var category: String = str(_question.get("category", ""))
 		if category == "combinatorics":
 			combinatorics_correct.emit()
+		await get_tree().create_timer(1.2).timeout
 	else:
+		# Opción incorrecta: marcar primero la opción elegida en rojo
+		for child in _choices_box.get_children():
+			if child is Button:
+				var is_chosen: bool = (child == pressed_button) or (pressed_button == null and child.text.strip_edges().to_lower() == choice.strip_edges().to_lower())
+				if is_chosen:
+					var red_style := StyleBoxFlat.new()
+					red_style.bg_color = Color("#e74c3c")
+					red_style.set_corner_radius_all(14)
+					child.add_theme_stylebox_override("normal", red_style)
+					child.add_theme_stylebox_override("disabled", red_style)
+					child.add_theme_color_override("font_color", Color.WHITE)
+					child.add_theme_color_override("font_disabled_color", Color.WHITE)
 		_feedback_label.text = "¡Incorrecto!"
 		_feedback_label.add_theme_color_override("font_color", Color("#e74c3c"))
 
-	_feedback_label.add_theme_font_size_override("font_size", 22)
+		# Pequeña pausa y luego señalar en verde la opción correcta
+		await get_tree().create_timer(0.4).timeout
+		for child in _choices_box.get_children():
+			if child is Button and child.text.strip_edges().to_lower() == expected_answer:
+				var green_style := StyleBoxFlat.new()
+				green_style.bg_color = Color("#2ecc71")
+				green_style.set_corner_radius_all(14)
+				child.add_theme_stylebox_override("normal", green_style)
+				child.add_theme_stylebox_override("disabled", green_style)
+				child.add_theme_color_override("font_color", Color.WHITE)
+				child.add_theme_color_override("font_disabled_color", Color.WHITE)
 
-	await get_tree().create_timer(1.5).timeout
+		await get_tree().create_timer(1.2).timeout
+
 	visible = false
 	answered.emit(correct)
 

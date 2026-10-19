@@ -316,7 +316,14 @@ func _attempt_place(side: String) -> void:
 
 	if joker_active:
 		joker_active = false
-		_place_tile(tile, side, target_end, second if first == target_end else first, true)
+		# Con comodín activo la ficha se adapta al extremo destino:
+		# Si la ficha es doble, el extremo expuesto es el mismo que el adjunto.
+		var joker_exposed: int
+		if first == second:
+			joker_exposed = first
+		else:
+			joker_exposed = second if first == target_end else first
+		_place_tile(tile, side, target_end, joker_exposed, true)
 		return
 
 	if first == target_end:
@@ -372,7 +379,13 @@ func _place_tile(
 	_update_hud()
 	_ui_manager.show_points(points_gained, get_viewport_rect().size * 0.5 + Vector2(0, 70))
 	if player_hand.is_empty():
-		_end_round(scoring_team, 0, false)
+		var opponent_team := 1 - scoring_team
+		var bonus_points: int = 0
+		for player_index in range(player_count):
+			if player_index % 2 == opponent_team:
+				for remaining_tile in hands[player_index]:
+					bonus_points += _tile_points(remaining_tile)
+		_end_round(scoring_team, bonus_points, false)
 		return
 	_advance_turn()
 
@@ -630,20 +643,26 @@ func _finish_blocked_round() -> void:
 
 
 func _end_round(winning_team: int, bonus_points: int = 0, is_blocked: bool = false) -> void:
+	# Sumar bonus solo al equipo ganador (sin doble conteo)
 	if bonus_points > 0:
 		team_scores[winning_team] += bonus_points
-		player_scores[winning_team] += bonus_points
+		# En modos de un jugador por equipo, sincronizar player_scores
+		if player_count <= 2:
+			player_scores[winning_team] += bonus_points
 		_update_hud()
 
 	var target: int = GameEconomy.target_score
 	if team_scores[0] >= target or team_scores[1] >= target:
 		game_finished = true
 		var final_winner: int = 0 if team_scores[0] >= team_scores[1] else 1
-		var winner_msg := "¡Equipo %d gana la partida con %d puntos! (Meta: %d)" % [
-			final_winner + 1,
-			team_scores[final_winner],
-			target
-		]
+		var winner_name: String = _team_display_name(final_winner)
+		var winner_msg: String
+		if final_winner == 0:
+			winner_msg = "🏆 ¡%s gana la partida con %d puntos!\nMeta: %d pts" % [
+				winner_name, team_scores[final_winner], target]
+		else:
+			winner_msg = "💀 %s gana la partida con %d puntos.\nMeta: %d pts" % [
+				winner_name, team_scores[final_winner], target]
 		_set_status(winner_msg)
 		if _ui_manager != null and _ui_manager.has_method("show_victory_screen"):
 			_ui_manager.show_victory_screen(winner_msg)
@@ -652,22 +671,17 @@ func _end_round(winning_team: int, bonus_points: int = 0, is_blocked: bool = fal
 		if final_winner == 0:
 			GameEconomy.award_match()
 	else:
+		var winner_name: String = _team_display_name(winning_team)
 		if is_blocked:
-			_set_status("Ronda bloqueada. Equipo %d suma %d pts. Marcador: [%d - %d] / Meta: %d" % [
-				winning_team + 1,
-				bonus_points,
-				team_scores[0],
-				team_scores[1],
-				target
+			_set_status("Ronda bloqueada — %s suma %d pts  ·  Marcador %d – %d  ·  Meta %d" % [
+				winner_name, bonus_points,
+				team_scores[0], team_scores[1], target
 			])
 		else:
-			_set_status("Ronda finalizada. Equipo %d dominó. Marcador: [%d - %d] / Meta: %d" % [
-				winning_team + 1,
-				team_scores[0],
-				team_scores[1],
-				target
+			_set_status("Ronda ganada por %s  ·  Marcador %d – %d  ·  Meta %d" % [
+				winner_name, team_scores[0], team_scores[1], target
 			])
-		await get_tree().create_timer(2.0).timeout
+		await get_tree().create_timer(2.5).timeout
 		if not game_finished:
 			_start_round(false)
 
@@ -741,24 +755,30 @@ func _on_help_requested() -> void:
 		return
 	if current_player != 0 and game_mode == "vs_cpu":
 		return
-	_set_status("Reto Combinatorio: responde antes de que termine el tiempo para ganar el Comodín.")
-	var q: Dictionary = TriviaManager.make_combinatorics_question(_hand_fruit_values())
+	# Preguntas variadas: combinatoria, probabilidad y cultura general
+	_set_status("Reto de Ayuda: responde la pregunta para ganar la pieza que necesitas.")
+	var q: Dictionary = TriviaManager.make_question(_hand_fruit_values())
 	_trivia_popup.show_question(q)
 
 
 func _on_trivia_answered(correct: bool) -> void:
 	if correct:
-		joker_active = true
+		joker_active = false
 		joker_available = true
-		_ui_manager.set_help_button_state("active")
+		_ui_manager.set_help_button_state("ready")
 		_ui_manager.play_celebration()
-		_set_status("¡Respuesta correcta! COMODÍN ACTIVO: Esta ronda puedes jugar cualquier ficha de tu mano sin importar el extremo.")
+		var granted_tile := _give_needed_tile_to_player()
+		_refresh_hand()
 		_update_hud()
+		_set_status("¡Respuesta correcta! Recibiste la pieza [%s | %s] que necesitabas para jugar." % [
+			FRUIT_NAMES[int(granted_tile["a"])],
+			FRUIT_NAMES[int(granted_tile["b"])]
+		])
 	else:
 		joker_active = false
 		_ui_manager.set_help_button_state("cooldown")
 		GameEconomy.lives -= 1
-		_set_status("Respuesta incorrecta. Pierdes 1 vida y pasas tu turno.")
+		_set_status("Respuesta incorrecta. No obtienes ninguna pieza y pierdes 1 vida.")
 		_update_hud()
 
 		if GameEconomy.lives <= 0:
@@ -766,7 +786,41 @@ func _on_trivia_answered(correct: bool) -> void:
 			_ui_manager.show_victory_screen("¡Te quedaste sin vidas! El Oponente gana.")
 			return
 
-		_advance_turn(true)
+		if not game_finished:
+			_advance_turn(true)
+
+
+func _give_needed_tile_to_player() -> Dictionary:
+	var needed_tile: Dictionary = {}
+	# 1. Buscar en el pozo una ficha que coincida con alguno de los extremos abiertos
+	if left_end == -1:
+		if not stock.is_empty():
+			needed_tile = stock.pop_back()
+	else:
+		for i in range(stock.size() - 1, -1, -1):
+			var candidate: Dictionary = stock[i]
+			var ca: int = int(candidate["a"])
+			var cb: int = int(candidate["b"])
+			if ca == left_end or cb == left_end or ca == right_end or cb == right_end:
+				needed_tile = candidate
+				stock.remove_at(i)
+				break
+
+	# 2. Si el pozo no contenía una ficha compatible, fabricar una ficha que encaje garantizada
+	if needed_tile.is_empty():
+		var fruit_needed: int = left_end if left_end >= 0 else randi_range(0, FRUIT_NAMES.size() - 1)
+		var other_fruit: int = randi_range(0, FRUIT_NAMES.size() - 1)
+		var new_id: int = 2000 + int(hands[current_player].size()) + int(played_tiles.size()) + int(stock.size())
+		needed_tile = {
+			"a": fruit_needed,
+			"b": other_fruit,
+			"id": new_id
+		}
+
+	# 3. Entregar la ficha al jugador actual y preseleccionarla para facilitar su jugada
+	hands[current_player].append(needed_tile)
+	selected_tile_id = int(needed_tile["id"])
+	return needed_tile
 
 
 func _hand_fruit_values() -> Array[int]:
@@ -1007,9 +1061,15 @@ func _update_hud() -> void:
 	if not hands.is_empty() and current_player < hands.size():
 		var can_move: bool = _has_legal_move(hands[current_player])
 		var is_human: bool = not (game_mode == "vs_cpu" and current_player == 1)
-		_ui_manager.show_draw_action(is_human and not can_move and not stock.is_empty())
-		_ui_manager.show_pass_action(is_human and not can_move and stock.is_empty())
-		_ui_manager.show_help_action(is_human and not can_move)
+		# El jugador está bloqueado cuando no puede mover y el comodín no está activo
+		var blocked: bool = is_human and not can_move and not joker_active
+		# Robar: visible cuando bloqueado y hay fichas en el pozo
+		_ui_manager.show_draw_action(blocked and not stock.is_empty())
+		# Pasar: visible cuando bloqueado y el pozo está vacío
+		_ui_manager.show_pass_action(blocked and stock.is_empty())
+		# Ayuda (trivia): visible siempre que el jugador esté bloqueado,
+		# ya que la trivia otorga el comodín sin importar el estado del pozo
+		_ui_manager.show_help_action(blocked)
 		_ui_manager.update_hud(
 			GameEconomy.lives,
 			GameEconomy.MAX_LIVES,
@@ -1040,6 +1100,17 @@ func _mode_display_name() -> String:
 			return "1 vs CPU"
 		_:
 			return "1 vs 1 Local"
+
+
+# Devuelve un nombre legible para el equipo según el modo de juego
+func _team_display_name(team: int) -> String:
+	match game_mode:
+		"vs_cpu":
+			return "Tú" if team == 0 else "CPU"
+		"local_2v2":
+			return "Equipo Azul" if team == 0 else "Equipo Rojo"
+		_:
+			return "Jugador 1" if team == 0 else "Jugador 2"
 
 
 func _set_status(message: String) -> void:

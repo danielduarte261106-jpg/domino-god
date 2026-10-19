@@ -36,52 +36,77 @@ func factorial(value: int) -> int:
 func make_question(hand_values: Array[int]) -> Dictionary:
 	var question_pool: Array[Dictionary] = [
 		{
+			"category": "combinatorics",
+			"prompt": "Combinatoria: ¿De cuántas formas se pueden ordenar 3 fichas distintas en una fila? (3!)",
+			"answer": "6",
+			"choices": ["6", "3", "9", "12"]
+		},
+		{
+			"category": "combinatorics",
+			"prompt": "Combinatoria: ¿Cuántas parejas distintas C(4, 2) se pueden formar con 4 frutas diferentes?",
+			"answer": "6",
+			"choices": ["6", "8", "4", "12"]
+		},
+		{
+			"category": "combinatorics",
+			"prompt": "Combinatoria: Si lanzas una moneda 3 veces, ¿cuántos resultados posibles (2³) existen?",
+			"answer": "8",
+			"choices": ["8", "6", "9", "16"]
+		},
+		{
 			"category": "unit_iii",
-			"prompt": "Unidad III · Probabilidad: si 3 de 8 resultados equiprobables son favorables, ¿cuál es la probabilidad?",
+			"prompt": "Probabilidad: Si en una bolsa hay 3 frutas rojas y 5 verdes, ¿cuál es la probabilidad de sacar una roja?",
 			"answer": "3/8",
-			"choices": ["3/8", "5/8", "3/5", "1/8"]
+			"choices": ["3/8", "5/8", "3/5", "1/4"]
 		},
 		{
 			"category": "unit_iii",
-			"prompt": "Unidad III · Estadística: ¿qué medida representa el valor central de una lista ordenada?",
+			"prompt": "Estadística: ¿Qué medida estadística representa el valor con mayor frecuencia en un conjunto de datos?",
+			"answer": "Moda",
+			"choices": ["Moda", "Mediana", "Media", "Varianza"]
+		},
+		{
+			"category": "unit_iii",
+			"prompt": "Estadística: En una lista ordenada de datos, ¿cómo se llama el valor que divide la muestra en dos partes iguales?",
 			"answer": "Mediana",
-			"choices": ["Mediana", "Moda", "Rango", "Media"]
+			"choices": ["Mediana", "Media", "Rango", "Desviación"]
 		},
 		{
 			"category": "culture",
-			"prompt": "Cultura general: ¿cuál es el planeta más grande del sistema solar?",
+			"prompt": "Cultura general: ¿Cuál es el planeta más grande de nuestro sistema solar?",
 			"answer": "Júpiter",
-			"choices": ["Júpiter", "Marte", "Venus", "Mercurio"]
+			"choices": ["Júpiter", "Saturno", "Neptuno", "Marte"]
 		},
 		{
 			"category": "culture",
-			"prompt": "Cultura general: ¿cuántos lados tiene un hexágono?",
+			"prompt": "Cultura general: ¿Cuántos lados tiene un hexágono regular?",
 			"answer": "6",
 			"choices": ["6", "5", "7", "8"]
+		},
+		{
+			"category": "culture",
+			"prompt": "Cultura general: ¿Cuál es el elemento químico más abundante en el universo?",
+			"answer": "Hidrógeno",
+			"choices": ["Hidrógeno", "Oxígeno", "Helio", "Carbono"]
+		},
+		{
+			"category": "culture",
+			"prompt": "Cultura general: ¿En qué continente se encuentra la cordillera de los Andes?",
+			"answer": "América",
+			"choices": ["América", "Asia", "Europa", "África"]
+		},
+		{
+			"category": "culture",
+			"prompt": "Cultura general: ¿Cuántos grados suman los ángulos internos de un triángulo?",
+			"answer": "180°",
+			"choices": ["180°", "360°", "90°", "270°"]
 		}
 	]
 
-	var distinct_fruits: Array[int] = []
-	for value in hand_values:
-		if not distinct_fruits.has(value):
-			distinct_fruits.append(value)
+	# También añadir dinámicamente un reto combinatorio basado en la mano actual
+	var dynamic_q := make_combinatorics_question(hand_values)
+	question_pool.append(dynamic_q)
 
-	var fruit_count := distinct_fruits.size()
-	var answer: int
-	var prompt: String
-	if fruit_count >= 2:
-		answer = permutations_without_repetition(fruit_count, 2)
-		prompt = "Combinatoria · En tu mano hay %d tipos distintos de fruta. ¿Cuántas variaciones sin repetición de 2 frutas se pueden ordenar? (P(n, 2))" % fruit_count
-	else:
-		answer = combinations_with_repetition(fruit_count, 2)
-		prompt = "Combinatoria · Con %d tipo de fruta distinto en tu mano, ¿cuántas parejas de 2 frutas se pueden elegir permitiendo repetición?" % fruit_count
-
-	question_pool.append({
-		"category": "combinatorics",
-		"prompt": prompt,
-		"answer": str(answer),
-		"choices": _numeric_choices(answer)
-	})
 	return question_pool[_rng.randi_range(0, question_pool.size() - 1)]
 
 
@@ -90,6 +115,7 @@ func make_combinatorics_question(hand_values: Array[int]) -> Dictionary:
 	for value in hand_values:
 		if not distinct_fruits.has(value):
 			distinct_fruits.append(value)
+	# Usar al menos 2 frutas distintas para que la pregunta sea significativa
 	var fruit_count: int = maxi(2, distinct_fruits.size())
 	
 	var q_type := _rng.randi_range(0, 2)
@@ -109,7 +135,7 @@ func make_combinatorics_question(hand_values: Array[int]) -> Dictionary:
 			# Combinaciones con repetición CR(n, 2)
 			answer = combinations_with_repetition(fruit_count, 2)
 			prompt = "Reto Combinatorio: Si se permite repetir fruta (dobles), ¿cuántas combinaciones CR(%d, 2) se pueden armar con %d frutas?" % [fruit_count, fruit_count]
-
+	
 	return {
 		"category": "combinatorics",
 		"prompt": prompt,
@@ -120,7 +146,14 @@ func make_combinatorics_question(hand_values: Array[int]) -> Dictionary:
 
 func resolve_answer(question: Dictionary, submitted_answer: String) -> bool:
 	var expected_answer: String = str(question.get("answer", ""))
-	var correct: bool = submitted_answer.strip_edges().to_lower() == expected_answer.strip_edges().to_lower()
+	var submitted_clean: String = submitted_answer.strip_edges().to_lower()
+	var expected_clean: String = expected_answer.strip_edges().to_lower()
+	# Comparar como cadena primero; si ambas son números, comparar como entero para evitar falsos negativos
+	var correct: bool
+	if submitted_clean.is_valid_int() and expected_clean.is_valid_int():
+		correct = int(submitted_clean) == int(expected_clean)
+	else:
+		correct = submitted_clean == expected_clean
 	var life_restored := false
 	if correct:
 		life_restored = GameEconomy.restore_life()
@@ -134,11 +167,25 @@ func resolve_answer(question: Dictionary, submitted_answer: String) -> bool:
 
 
 func _numeric_choices(answer: int) -> Array[String]:
-	var values: Array[int] = [answer, maxi(0, answer - 1), answer + 1, answer + 2]
-	values.shuffle()
+	# Genera 4 opciones únicas: la correcta y 3 distractores cercanos
 	var choices: Array[String] = []
-	for value in values:
-		var choice := str(value)
-		if not choices.has(choice):
-			choices.append(choice)
+	var candidates: Array[int] = [answer]
+	# Añadir distractores: -2, -1, +1, +2, +3, +4 relativos a la respuesta
+	for delta in [-2, -1, 1, 2, 3, 4]:
+		var candidate: int = answer + delta
+		if candidate >= 0 and not candidates.has(candidate):
+			candidates.append(candidate)
+		if candidates.size() >= 4:
+			break
+	# Si aún faltan (respuestas muy pequeñas como 0), agregar valores positivos ascendentes
+	var extra := 5
+	while candidates.size() < 4:
+		if not candidates.has(extra):
+			candidates.append(extra)
+		extra += 1
+	# Tomar los primeros 4, mezclar y convertir a String
+	var pool: Array[int] = candidates.slice(0, 4)
+	pool.shuffle()
+	for value in pool:
+		choices.append(str(value))
 	return choices
